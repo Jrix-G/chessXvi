@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(java -version)",
+      "Read(//etc/**)",
+      "Bash(wsl *)",
+      "Bash(lsb_release -d)",
+      "Bash(apt-cache policy *)",
+      "Bash(wsl.exe *)",
+      "Bash(ls -la \"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\jason\\\\chessXvi\")",
+      "Bash(find \"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\jason\\\\chessXvi\" -maxdepth 2 -type f)",
+      "Bash(python3 -c \"import cairosvg; print\\('cairosvg ok'\\)\")",
+      "Bash(command -v wsl)",
+      "Bash(javac Main.java Board.java ChessGUI.java)"
+    ]
+  }
+}
