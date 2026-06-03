@@ -81,12 +81,6 @@ public class ChessGUI {
         } else {
           s.setBackground(DARK);
         }
-
-        String piece = board.pieceAt(row, col);
-        if (piece.startsWith("white")) {
-          System.out.println("White piece");
-        }
-
         if (board.isEmpty(row, col)) {
           s.setIcon(null);
         } else {

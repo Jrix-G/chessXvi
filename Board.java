@@ -34,22 +34,64 @@ public class Board {
     }
     String color = pieceSquare.split("_")[0]; // Color of the piece, black or white
     String piece = pieceSquare.split("_")[1]; // Name of the piece like "knight"
-    return checkIfSame(fromRow, fromCol, toRow, toCol) && checkPawnMove(fromRow, fromCol, toRow, toCol, color);
+    if (!checkIfSame(fromRow, fromCol, toRow, toCol))
+      return false;
+    if (piece.equals("pawn"))
+      return checkPawnMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("knight"))
+      return checkKnightMove(fromRow, fromCol, toRow, toCol);
+    return false;
   }
 
   // check if pawn movement is correct (black or white)
   public boolean checkPawnMove(int fromRow, int fromCol, int toRow, int toCol, String color) {
-    if (color.equals("white")) {
+    if (color.equals("white")) { // white pawn
       if (fromCol == toCol && (fromRow == (toRow + 1) || fromRow == (toRow + 2))) {
         moved(fromRow, fromCol, toRow, toCol);
         return true;
       }
     }
-    if (color.equals("black")) {
+    if (color.equals("black")) { // black pawn
       if (fromCol == toCol && (fromRow == (toRow - 1) || fromRow == (toRow - 2))) {
         moved(fromRow, fromCol, toRow, toCol);
         return true;
       }
+    }
+    return false;
+  }
+
+  public boolean checkKnightMove(int fromRow, int fromCol, int toRow, int toCol) {
+    if (fromCol + 1 == toCol && fromRow + 2 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol - 1 == toCol && fromRow + 2 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol + 2 == toCol && fromRow + 1 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol + 2 == toCol && fromRow - 1 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol - 2 == toCol && fromRow + 1 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol - 2 == toCol && fromRow - 1 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol - 1 == toCol && fromRow - 2 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
+    }
+    if (fromCol + 1 == toCol && fromRow - 2 == toRow) {
+      moved(fromRow, fromCol, toRow, toCol);
+      return true;
     }
     return false;
   }
