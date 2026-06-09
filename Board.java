@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Board {
   private final String[][] squares = {
       { "black_rook", "black_knight", "black_bishop", "black_queen", "black_king", "black_bishop", "black_knight",
@@ -46,8 +49,10 @@ public class Board {
     }
     String color = pieceSquare.split("_")[0]; // Color of the piece, black or white
     String piece = pieceSquare.split("_")[1]; // Name of the piece like "knight"
-    if (!checkIfSame(fromRow, fromCol, toRow, toCol)) return false;
-    if (!wouldBeLegal(fromRow, fromCol, toRow, toCol)) return false;
+    if (!checkIfSame(fromRow, fromCol, toRow, toCol))
+      return false;
+    if (!wouldBeLegal(fromRow, fromCol, toRow, toCol))
+      return false;
     boolean castling = piece.equals("king") && fromRow == toRow && Math.abs(toCol - fromCol) == 2;
     applyMove(piece, color, fromRow, fromCol, toRow, toCol, castling);
     updateStateAfterMove(piece, color, fromRow, fromCol, toRow, toCol);
@@ -55,27 +60,38 @@ public class Board {
   }
 
   private boolean isPseudoLegal(String piece, int fromRow, int fromCol, int toRow, int toCol, String color) {
-    if (piece.equals("pawn")) return checkPawnMove(fromRow, fromCol, toRow, toCol, color);
-    if (piece.equals("knight")) return checkKnightMove(fromRow, fromCol, toRow, toCol, color);
-    if (piece.equals("rook")) return checkRookMove(fromRow, fromCol, toRow, toCol, color);
-    if (piece.equals("bishop")) return checkBishopMove(fromRow, fromCol, toRow, toCol, color);
-    if (piece.equals("queen")) return checkQueenMove(fromRow, fromCol, toRow, toCol, color);
-    if (piece.equals("king")) return checkKingMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("pawn"))
+      return checkPawnMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("knight"))
+      return checkKnightMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("rook"))
+      return checkRookMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("bishop"))
+      return checkBishopMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("queen"))
+      return checkQueenMove(fromRow, fromCol, toRow, toCol, color);
+    if (piece.equals("king"))
+      return checkKingMove(fromRow, fromCol, toRow, toCol, color);
     return false;
   }
 
   private boolean wouldBeLegal(int fromRow, int fromCol, int toRow, int toCol) {
-    if (!inBounds(fromRow, fromCol) || !inBounds(toRow, toCol)) return false;
-    if (fromRow == toRow && fromCol == toCol) return false;
+    if (!inBounds(fromRow, fromCol) || !inBounds(toRow, toCol))
+      return false;
+    if (fromRow == toRow && fromCol == toCol)
+      return false;
     String pieceSquare = squares[fromRow][fromCol];
-    if (pieceSquare.equals("")) return false;
+    if (pieceSquare.equals(""))
+      return false;
     String color = pieceSquare.split("_")[0];
     String piece = pieceSquare.split("_")[1];
     boolean castling = piece.equals("king") && fromRow == toRow && Math.abs(toCol - fromCol) == 2;
     if (castling) {
-      if (!canCastle(fromRow, fromCol, toRow, toCol, color)) return false;
+      if (!canCastle(fromRow, fromCol, toRow, toCol, color))
+        return false;
     } else {
-      if (!isPseudoLegal(piece, fromRow, fromCol, toRow, toCol, color)) return false;
+      if (!isPseudoLegal(piece, fromRow, fromCol, toRow, toCol, color))
+        return false;
     }
     String[][] backup = snapshot();
     applyMove(piece, color, fromRow, fromCol, toRow, toCol, castling);
@@ -112,43 +128,67 @@ public class Board {
       enPassantCol = -1;
     }
     if (piece.equals("king")) {
-      if (color.equals("white")) whiteKingMoved = true;
-      else blackKingMoved = true;
+      if (color.equals("white"))
+        whiteKingMoved = true;
+      else
+        blackKingMoved = true;
     }
     if (piece.equals("rook")) {
-      if (fromRow == 7 && fromCol == 0) whiteRookQueenMoved = true;
-      if (fromRow == 7 && fromCol == 7) whiteRookKingMoved = true;
-      if (fromRow == 0 && fromCol == 0) blackRookQueenMoved = true;
-      if (fromRow == 0 && fromCol == 7) blackRookKingMoved = true;
+      if (fromRow == 7 && fromCol == 0)
+        whiteRookQueenMoved = true;
+      if (fromRow == 7 && fromCol == 7)
+        whiteRookKingMoved = true;
+      if (fromRow == 0 && fromCol == 0)
+        blackRookQueenMoved = true;
+      if (fromRow == 0 && fromCol == 7)
+        blackRookKingMoved = true;
     }
-    if (toRow == 7 && toCol == 0) whiteRookQueenMoved = true;
-    if (toRow == 7 && toCol == 7) whiteRookKingMoved = true;
-    if (toRow == 0 && toCol == 0) blackRookQueenMoved = true;
-    if (toRow == 0 && toCol == 7) blackRookKingMoved = true;
+    if (toRow == 7 && toCol == 0)
+      whiteRookQueenMoved = true;
+    if (toRow == 7 && toCol == 7)
+      whiteRookKingMoved = true;
+    if (toRow == 0 && toCol == 0)
+      blackRookQueenMoved = true;
+    if (toRow == 0 && toCol == 7)
+      blackRookKingMoved = true;
   }
 
   private boolean canCastle(int fromRow, int fromCol, int toRow, int toCol, String color) {
-    if (fromCol != 4) return false;
+    if (fromCol != 4)
+      return false;
     if (color.equals("white")) {
-      if (fromRow != 7 || whiteKingMoved) return false;
+      if (fromRow != 7 || whiteKingMoved)
+        return false;
     } else {
-      if (fromRow != 0 || blackKingMoved) return false;
+      if (fromRow != 0 || blackKingMoved)
+        return false;
     }
     String opp = opponent(color);
-    if (inCheck(color)) return false;
+    if (inCheck(color))
+      return false;
     boolean kingside = toCol > fromCol;
     if (kingside) {
-      if (toCol != 6) return false;
-      if (color.equals("white") ? whiteRookKingMoved : blackRookKingMoved) return false;
-      if (!squares[fromRow][7].equals(color + "_rook")) return false;
-      if (!isEmpty(fromRow, 5) || !isEmpty(fromRow, 6)) return false;
-      if (isAttacked(fromRow, 5, opp) || isAttacked(fromRow, 6, opp)) return false;
+      if (toCol != 6)
+        return false;
+      if (color.equals("white") ? whiteRookKingMoved : blackRookKingMoved)
+        return false;
+      if (!squares[fromRow][7].equals(color + "_rook"))
+        return false;
+      if (!isEmpty(fromRow, 5) || !isEmpty(fromRow, 6))
+        return false;
+      if (isAttacked(fromRow, 5, opp) || isAttacked(fromRow, 6, opp))
+        return false;
     } else {
-      if (toCol != 2) return false;
-      if (color.equals("white") ? whiteRookQueenMoved : blackRookQueenMoved) return false;
-      if (!squares[fromRow][0].equals(color + "_rook")) return false;
-      if (!isEmpty(fromRow, 1) || !isEmpty(fromRow, 2) || !isEmpty(fromRow, 3)) return false;
-      if (isAttacked(fromRow, 2, opp) || isAttacked(fromRow, 3, opp)) return false;
+      if (toCol != 2)
+        return false;
+      if (color.equals("white") ? whiteRookQueenMoved : blackRookQueenMoved)
+        return false;
+      if (!squares[fromRow][0].equals(color + "_rook"))
+        return false;
+      if (!isEmpty(fromRow, 1) || !isEmpty(fromRow, 2) || !isEmpty(fromRow, 3))
+        return false;
+      if (isAttacked(fromRow, 2, opp) || isAttacked(fromRow, 3, opp))
+        return false;
     }
     return true;
   }
@@ -159,7 +199,8 @@ public class Board {
       if (fromCol == toCol && fromRow == (toRow + 1) && isEmpty(toRow, toCol)) {
         return true;
       }
-      if (fromCol == toCol && fromRow == 6 && fromRow == (toRow + 2) && isEmpty(fromRow - 1, fromCol) && isEmpty(toRow, toCol)) {
+      if (fromCol == toCol && fromRow == 6 && fromRow == (toRow + 2) && isEmpty(fromRow - 1, fromCol)
+          && isEmpty(toRow, toCol)) {
         return true;
       }
       if (fromRow == (toRow + 1) && (toCol == fromCol + 1 || toCol == fromCol - 1)) {
@@ -175,7 +216,8 @@ public class Board {
       if (fromCol == toCol && fromRow == (toRow - 1) && isEmpty(toRow, toCol)) {
         return true;
       }
-      if (fromCol == toCol && fromRow == 1 && fromRow == (toRow - 2) && isEmpty(fromRow + 1, fromCol) && isEmpty(toRow, toCol)) {
+      if (fromCol == toCol && fromRow == 1 && fromRow == (toRow - 2) && isEmpty(fromRow + 1, fromCol)
+          && isEmpty(toRow, toCol)) {
         return true;
       }
       if (fromRow == (toRow - 1) && (toCol == fromCol + 1 || toCol == fromCol - 1)) {
@@ -307,6 +349,43 @@ public class Board {
 
   public boolean isStalemate(String color) {
     return !inCheck(color) && !hasLegalMove(color);
+  }
+
+  public Board copy() {
+    Board b = new Board();
+    for (int row = 0; row < 8; row++) {
+      for (int col = 0; col < 8; col++) {
+        b.squares[row][col] = this.squares[row][col];
+      }
+    }
+    b.enPassantRow = this.enPassantRow;
+    b.enPassantCol = this.enPassantCol;
+    b.whiteKingMoved = this.whiteKingMoved;
+    b.blackKingMoved = this.blackKingMoved;
+    b.whiteRookKingMoved = this.whiteRookKingMoved;
+    b.whiteRookQueenMoved = this.whiteRookQueenMoved;
+    b.blackRookKingMoved = this.blackRookKingMoved;
+    b.blackRookQueenMoved = this.blackRookQueenMoved;
+    return b;
+  }
+
+  public List<int[]> legalMoves(String color) {
+    List<int[]> moves = new ArrayList<>();
+    for (int fromRow = 0; fromRow < 8; fromRow++) {
+      for (int fromCol = 0; fromCol < 8; fromCol++) {
+        if (squares[fromRow][fromCol].equals("") || !squares[fromRow][fromCol].startsWith(color)) {
+          continue;
+        }
+        for (int toRow = 0; toRow < 8; toRow++) {
+          for (int toCol = 0; toCol < 8; toCol++) {
+            if (wouldBeLegal(fromRow, fromCol, toRow, toCol)) {
+              moves.add(new int[] { fromRow, fromCol, toRow, toCol });
+            }
+          }
+        }
+      }
+    }
+    return moves;
   }
 
   private boolean hasLegalMove(String color) {

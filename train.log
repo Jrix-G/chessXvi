@@ -1,0 +1,5 @@
+nohup: ignoring input
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 64 out of bounds for length 64
+	at Network.update(Network.java:63)
+	at Trainer.apply(Trainer.java:97)
+	at Trainer.main(Trainer.java:122)

@@ -1,0 +1,517 @@
+% Cours complet sur les reseaux de neurones - projet chessXvi
+% Compilation : tectonic COURS_IA.tex   (moteur XeLaTeX)
+\documentclass[11pt]{article}
+
+\usepackage{fontspec}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+
+% ----- Couleurs -----
+\definecolor{accent}{RGB}{74,128,79}
+\definecolor{accentdark}{RGB}{42,77,42}
+\definecolor{codebg}{RGB}{246,248,250}
+\definecolor{kw}{RGB}{20,80,160}
+\definecolor{cmt}{RGB}{60,140,60}
+
+% ----- Code -----
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{gray!40},
+  framesep=6pt,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  keywordstyle=\color{kw}\bfseries,
+  commentstyle=\color{cmt}\itshape,
+  xleftmargin=4pt,
+  aboveskip=10pt,
+  belowskip=10pt,
+}
+
+% ----- Encadre "A retenir" -----
+\newtcolorbox{retenir}{
+  colback=accent!8, colframe=accent, boxrule=0.8pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt, arc=3pt,
+}
+
+\renewcommand{\arraystretch}{1.25}
+
+% ----- Page de titre -----
+\title{\textbf{Cours complet : les réseaux de neurones}\\[4pt]
+\large Mathématiques et informatique --- projet \texttt{chessXvi}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.2em}
+
+\begin{center}
+\itshape Ce cours part de zéro. Il explique à la fois les mathématiques
+(ce qui se passe vraiment) et l'informatique (comment on le code, en lien avec
+\texttt{Layer.java} et \texttt{Network.java}). L'objectif est que tu comprennes
+tout, sans trou.
+\end{center}
+
+\hrule
+\vspace{1em}
+
+% =====================================================================
+\section*{Tableau des chapitres}
+\addcontentsline{toc}{section}{Tableau des chapitres}
+
+\begin{center}
+\begin{tabular}{>{\centering\arraybackslash}m{0.6cm} m{8.4cm} >{\centering\arraybackslash}m{2.6cm}}
+\toprule
+\textbf{\#} & \textbf{Chapitre} & \textbf{État} \\
+\midrule
+0  & Intuition : c'est quoi une IA ?            & \checkmark \\
+1  & Le neurone formel                          & \checkmark\ codé \\
+2  & Les fonctions d'activation                 & \checkmark\ codé \\
+3  & Rappels de maths : vecteurs \& matrices     & \checkmark \\
+4  & La couche de neurones                      & \checkmark\ codé \\
+5  & Le réseau complet (propagation avant)      & \checkmark\ codé \\
+6  & Faire « apprendre » : la fonction de coût  & à faire \\
+7  & Rappels de maths : dérivées \& gradient     & à faire \\
+8  & La descente de gradient                    & à faire \\
+9  & La rétropropagation                        & à faire \\
+10 & L'entraînement en pratique                 & à faire \\
+11 & Application aux échecs                      & à faire \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\small Où on en est : voir la dernière section, « Où on se situe ».
+\end{center}
+
+% =====================================================================
+\section{Intuition : c'est quoi une IA ?}
+
+Dans ce cours, « intelligence artificielle » désigne un objet mathématique
+précis : un \textbf{réseau de neurones}. Ce n'est pas magique : c'est une
+\textbf{fonction}. Une fonction prend des nombres en \textbf{entrée} et renvoie
+des nombres en \textbf{sortie} :
+\[
+\{2,\ 3\}\ \longrightarrow\ \boxed{\ \text{FONCTION}\ }\ \longrightarrow\ \{6{,}5\}
+\]
+
+La particularité d'un réseau de neurones est de contenir \textbf{beaucoup de
+réglages} (les « poids »). « Entraîner une IA », c'est simplement \textbf{trouver
+les bons réglages} pour que la sortie soit celle qu'on veut. Tout le cours répond
+à deux questions :
+
+\begin{enumerate}[leftmargin=2em]
+  \item Comment la fonction calcule sa sortie ? (chap. 1 à 5 : la \emph{propagation avant})
+  \item Comment trouver les bons réglages ? (chap. 6 à 10 : l'\emph{apprentissage})
+\end{enumerate}
+
+% =====================================================================
+\section{Le neurone formel}
+
+\subsection{L'idée}
+Un \textbf{neurone} est la plus petite brique. Il reçoit plusieurs nombres en
+entrée et en produit \textbf{un seul} en sortie. Il fait trois choses :
+\begin{enumerate}[leftmargin=2em]
+  \item il \textbf{pondère} chaque entrée (chaque entrée a un \emph{poids}) ;
+  \item il \textbf{additionne} le tout, plus un nombre fixe appelé \emph{biais} ;
+  \item il passe le résultat dans une \emph{fonction d'activation} (chap. 2).
+\end{enumerate}
+
+\subsection{Les mathématiques}
+Notons les entrées $x_1,\dots,x_n$, les poids $w_1,\dots,w_n$ et le biais $b$.
+Le neurone calcule d'abord la \textbf{pré-activation} $z$ :
+\[
+z = b + w_1 x_1 + w_2 x_2 + \dots + w_n x_n = b + \sum_{i=1}^{n} w_i\,x_i
+\]
+\begin{itemize}[leftmargin=2em]
+  \item $w_i$ grand $\Rightarrow$ l'entrée $x_i$ compte beaucoup ;
+  \item $w_i$ négatif $\Rightarrow$ l'entrée joue « contre » ;
+  \item $b$ (biais) décale le résultat (comme l'ordonnée à l'origine d'une droite).
+\end{itemize}
+Puis on applique l'activation $f$ pour obtenir la sortie $a$ :
+\[
+a = f(z)
+\]
+
+\subsection{Le lien avec le code}
+Dans \texttt{Layer.java}, pour \textbf{un} neurone \texttt{n} :
+\begin{lstlisting}[language=Java]
+double z = biases[n];                 // z = b
+for (int i = 0; i < input.length; i++) {
+    z += weights[n][i] * input[i];    // z += w_i * x_i
+}
+output[n] = relu(z);                  // a = f(z)
+\end{lstlisting}
+
+\begin{retenir}
+\textbf{À retenir.} Un neurone $=$ \texttt{biais + somme(poids $\times$ entrées)},
+puis activation.
+\end{retenir}
+
+% =====================================================================
+\section{Les fonctions d'activation}
+
+\subsection{Pourquoi en a-t-on besoin ?}
+Sans activation, un neurone n'est qu'une \textbf{somme pondérée}, donc une
+opération \textbf{linéaire}. Empiler des couches linéaires reste linéaire : on ne
+pourrait représenter que des droites, même avec mille couches. La fonction
+d'activation introduit de la \textbf{non-linéarité}, ce qui permet d'apprendre des
+formes complexes (courbes, frontières, motifs).
+
+\subsection{ReLU (celle utilisée dans le projet)}
+\[
+\mathrm{ReLU}(z) = \max(0,\ z)
+\]
+Si $z$ est négatif on renvoie $0$, sinon on garde $z$.
+\begin{lstlisting}[language=Java]
+double relu(double z) {
+    return Math.max(0, z);
+}
+\end{lstlisting}
+C'est la plus utilisée aujourd'hui : simple, rapide, efficace.
+
+\subsection{La sigmoïde (à connaître)}
+\[
+\sigma(z) = \frac{1}{1 + e^{-z}}
+\]
+Elle « écrase » tout nombre entre $0$ et $1$. Pratique pour produire une
+\textbf{probabilité} (ex. « probabilité que ce coup soit bon $= 0{,}87$ »).
+
+\begin{retenir}
+\textbf{À retenir.} L'activation rend le réseau capable d'apprendre autre chose
+que des droites. ReLU $= \max(0,z)$.
+\end{retenir}
+
+% =====================================================================
+\section{Rappels de maths : vecteurs et matrices}
+
+C'est le \textbf{langage} des réseaux.
+
+\subsection{Un vecteur}
+Une \textbf{liste ordonnée de nombres}. En code : un \texttt{double[]}.
+\[
+x = \begin{pmatrix} 2 \\ 3 \end{pmatrix}
+\qquad\Longleftrightarrow\qquad
+\texttt{double[] x = \{2, 3\};}
+\]
+
+\subsection{Une matrice}
+Un \textbf{tableau de nombres à deux dimensions} (lignes $\times$ colonnes).
+En code : un \texttt{double[][]}.
+\[
+W = \begin{pmatrix} 0{,}5 & -1 \\ 1 & 1 \\ -1 & 0{,}5 \end{pmatrix}
+\]
+Cette matrice a \textbf{3 lignes} et \textbf{2 colonnes}. Dans un réseau :
+\textbf{1 ligne $=$ 1 neurone}, et \textbf{le nombre de colonnes $=$ le nombre
+d'entrées}. Elle décrit donc 3 neurones attendant chacun 2 entrées : c'est
+exactement \texttt{layer1} dans \texttt{Network.java}.
+
+\subsection{Le produit matrice $\times$ vecteur}
+C'est \textbf{l'opération centrale}. Chaque ligne de $W$ est combinée avec $x$ par
+une somme pondérée :
+\[
+Wx =
+\begin{pmatrix} 0{,}5 & -1 \\ 1 & 1 \\ -1 & 0{,}5 \end{pmatrix}
+\begin{pmatrix} 2 \\ 3 \end{pmatrix}
+=
+\begin{pmatrix} 0{,}5\cdot 2 + (-1)\cdot 3 \\ 1\cdot 2 + 1\cdot 3 \\ -1\cdot 2 + 0{,}5\cdot 3 \end{pmatrix}
+=
+\begin{pmatrix} -1 \\ 5 \\ -0{,}5 \end{pmatrix}
+\]
+Chaque ligne du résultat est exactement la somme pondérée d'un neurone : le
+produit matrice $\times$ vecteur \textbf{calcule tous les neurones d'une couche
+d'un coup}. En ajoutant les biais $b$ puis l'activation, on obtient toute la
+couche :
+\[
+\boxed{\,a = f(Wx + b)\,}
+\]
+Retiens cette formule : c'est tout un réseau, répété couche après couche.
+
+% =====================================================================
+\section{La couche de neurones}
+
+Une \textbf{couche} (\texttt{Layer}) regroupe des neurones qui reçoivent
+\textbf{les mêmes entrées} et produisent \textbf{chacun une sortie} : c'est la
+formule $a = f(Wx + b)$.
+
+\begin{center}
+\begin{tabular}{c c l}
+\toprule
+\textbf{Maths} & \textbf{Code (\texttt{Layer.java})} & \textbf{Signification} \\
+\midrule
+$W$        & \texttt{weights} (\texttt{double[][]}) & 1 ligne par neurone \\
+$b$        & \texttt{biases} (\texttt{double[]})    & 1 biais par neurone \\
+$x$        & \texttt{input} (\texttt{double[]})     & le vecteur d'entrée \\
+$Wx+b$     & la variable \texttt{z}                 & la pré-activation \\
+$f$        & \texttt{relu(...)}                     & l'activation \\
+$a$        & \texttt{output} (\texttt{double[]})    & le vecteur de sortie \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[language=Java]
+public double[] forward(double[] input) {
+    int neurons = weights.length;          // nb de lignes de W = nb de neurones
+    double[] output = new double[neurons];
+    for (int n = 0; n < neurons; n++) {    // pour chaque neurone (ligne de W)
+      double z = biases[n];                // z = b[n]
+      for (int i = 0; i < input.length; i++) {
+        z += weights[n][i] * input[i];     // z += W[n][i] * x[i]
+      }
+      output[n] = relu(z);                 // a[n] = f(z)
+    }
+    return output;
+}
+\end{lstlisting}
+
+La double boucle fait \emph{à la main} le produit matrice $\times$ vecteur : la
+boucle \texttt{n} parcourt les lignes (les neurones), la boucle \texttt{i}
+parcourt les colonnes (les entrées).
+
+\subsection{Exemple chiffré (la couche 1 du projet)}
+Entrée $x = \{2,3\}$, matrice $W$ ci-dessus, biais $b = \{1,0,2\}$ :
+\begin{center}
+\begin{tabular}{c l c}
+\toprule
+\textbf{Neurone} & $z = b + \sum w_i x_i$ & $a = \mathrm{ReLU}(z)$ \\
+\midrule
+0 & $1 + 0{,}5\cdot 2 - 1\cdot 3 = -1$    & $\mathbf{0}$   \\
+1 & $0 + 1\cdot 2 + 1\cdot 3 = 5$         & $\mathbf{5}$   \\
+2 & $2 - 1\cdot 2 + 0{,}5\cdot 3 = 1{,}5$ & $\mathbf{1{,}5}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Sortie de la couche : $\{0,\ 5,\ 1{,}5\}$.
+
+% =====================================================================
+\section{Le réseau complet (propagation avant)}
+
+Un \textbf{réseau} (\texttt{Network}) est une \textbf{suite de couches} : la sortie
+d'une couche devient l'entrée de la suivante. C'est la \textbf{propagation avant}
+(\emph{forward pass}).
+\[
+x \xrightarrow{\text{couche 1}} a^{(1)} \xrightarrow{\text{couche 2}} a^{(2)}
+\longrightarrow \dots \longrightarrow \text{sortie}
+\]
+\begin{lstlisting}[language=Java]
+public double[] forward(double[] input) {
+    double[] current = input;                  // on part de l'entree
+    for (int k = 0; k < layers.length; k++) {  // pour chaque couche...
+      current = layers[k].forward(current);    // ...la sortie devient la nouvelle entree
+    }
+    return current;
+}
+\end{lstlisting}
+La variable \texttt{current} est le \textbf{relais} qui circule de couche en couche.
+
+\subsection{Exemple chiffré complet (le réseau $2 \to 3 \to 1$)}
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Couche 1} : entrée $\{2,3\} \to \{0, 5, 1{,}5\}$ (calcul précédent).
+  \item \textbf{Couche 2} : 1 neurone, poids $\{1,1,1\}$, biais $0$ :
+  \[
+  z = 0 + 1\cdot 0 + 1\cdot 5 + 1\cdot 1{,}5 = 6{,}5
+  \quad\Rightarrow\quad \mathrm{ReLU}(6{,}5) = 6{,}5
+  \]
+  \item \textbf{Sortie finale} : $\{6{,}5\}$.
+\end{itemize}
+
+À ce stade, le réseau sait \textbf{calculer} une sortie : c'est ce que fait ton
+code aujourd'hui. \textbf{Mais les poids sont posés à la main} : le réseau ne sait
+pas encore \emph{apprendre}. C'est l'objet des chapitres suivants.
+
+% =====================================================================
+\section{Faire « apprendre » : la fonction de coût}
+
+\subsection{Le problème}
+Apprendre, c'est laisser la machine \textbf{trouver les poids toute seule}, à
+partir d'\textbf{exemples}. Un exemple $=$ une entrée $+$ la \textbf{bonne réponse
+attendue} (la « cible », notée $y$).
+
+\subsection{Mesurer l'erreur}
+Le réseau produit une prédiction $\hat{y}$. On la compare à la cible $y$ avec une
+\textbf{fonction de coût} (ou \emph{perte}). La plus simple est l'\textbf{erreur
+quadratique} :
+\[
+C = (\hat{y} - y)^2
+\]
+\begin{itemize}[leftmargin=2em]
+  \item si $\hat{y} = y$ : coût $0$ (parfait) ;
+  \item plus on est loin, plus le coût est grand (le carré pénalise fort les gros écarts).
+\end{itemize}
+
+\begin{retenir}
+\textbf{Idée-clé.} Apprendre $=$ rendre $C$ le plus petit possible en ajustant les
+poids et les biais. C'est un problème de \textbf{minimisation}. L'outil pour
+minimiser une fonction, c'est la \textbf{dérivée} (chap. 7).
+\end{retenir}
+
+% =====================================================================
+\section{Rappels de maths : dérivées et gradient}
+
+\subsection{La dérivée : la « pente »}
+La \textbf{dérivée} d'une fonction en un point est sa \textbf{pente} : elle dit
+dans quel sens et à quelle vitesse la fonction monte ou descend.
+\begin{itemize}[leftmargin=2em]
+  \item dérivée \textbf{positive} : la fonction monte ;
+  \item dérivée \textbf{négative} : la fonction descend ;
+  \item dérivée \textbf{nulle} : on est sur un plat (sommet ou creux).
+\end{itemize}
+Notation : $\dfrac{dC}{dw}$ « de combien varie le coût $C$ si je bouge un peu le
+poids $w$ ».
+
+\subsection{Le gradient : la pente en plusieurs dimensions}
+Quand le coût dépend de beaucoup de poids, on prend la dérivée par rapport à
+\textbf{chacun} (les \emph{dérivées partielles}, notées $\partial$). Le
+\textbf{gradient} les rassemble :
+\[
+\nabla C = \left( \frac{\partial C}{\partial w_1},\ \frac{\partial C}{\partial w_2},\ \dots \right)
+\]
+Propriété fondamentale : le gradient \textbf{pointe dans la direction où le coût
+augmente le plus vite}. Pour \textbf{diminuer} le coût, on va donc dans le sens
+\textbf{opposé} au gradient (chap. 8).
+
+\subsection{Une dérivée dont on aura besoin}
+\[
+C = (\hat{y}-y)^2 \quad\Longrightarrow\quad \frac{dC}{d\hat{y}} = 2(\hat{y} - y)
+\]
+(la dérivée de « quelque chose au carré » $= 2 \times$ ce quelque chose $\times$ sa
+propre dérivée.)
+
+% =====================================================================
+\section{La descente de gradient}
+
+C'est \textbf{l'algorithme d'apprentissage}. Image : tu es dans la montagne, dans
+le brouillard, et tu veux rejoindre la vallée (le coût minimal). Tu ne vois pas
+loin, mais tu sens la \textbf{pente sous tes pieds} (le gradient). Stratégie :
+faire un \textbf{petit pas vers le bas}, et recommencer.
+
+Pour chaque poids $w$ :
+\[
+w \;\leftarrow\; w \;-\; \eta\,\frac{\partial C}{\partial w}
+\]
+\begin{itemize}[leftmargin=2em]
+  \item $\dfrac{\partial C}{\partial w}$ : la pente (le gradient) pour ce poids ;
+  \item le signe \textbf{moins} : on descend (sens opposé au gradient) ;
+  \item $\eta$ (« êta »), le \textbf{taux d'apprentissage} : la taille du pas.
+  Trop petit $\Rightarrow$ très lent ; trop grand $\Rightarrow$ on saute par-dessus
+  la vallée, ça diverge.
+\end{itemize}
+On répète des milliers de fois : à chaque tour le coût baisse un peu. Reste à
+calculer toutes ces dérivées partielles dans un réseau à plusieurs couches
+(chap. 9).
+
+% =====================================================================
+\section{La rétropropagation (\emph{backpropagation})}
+
+\subsection{Le défi}
+Un poids de la \textbf{première} couche influence la sortie en traversant
+\textbf{toutes} les couches suivantes. Comment connaître sa part de responsabilité
+dans l'erreur finale ?
+
+\subsection{La règle de la chaîne}
+Si une grandeur en influence une autre qui en influence une troisième, on
+\textbf{multiplie les dérivées} le long du chemin :
+\[
+\frac{dC}{dw} = \frac{dC}{da}\cdot\frac{da}{dz}\cdot\frac{dz}{dw}
+\]
+
+\subsection{L'idée de l'algorithme}
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Propagation avant} : calculer la sortie (déjà fait par ton code) en
+  mémorisant les valeurs intermédiaires ($z$ et $a$ de chaque couche).
+  \item \textbf{Calcul de l'erreur} finale $C$ (chap. 6).
+  \item \textbf{Propagation arrière} : partir de la sortie et \textbf{remonter}
+  couche par couche, en multipliant les dérivées, pour obtenir
+  $\partial C/\partial w$ de \textbf{chaque} poids.
+  \item \textbf{Mise à jour} de tous les poids par descente de gradient (chap. 8).
+\end{enumerate}
+C'est le « back » de \emph{backpropagation} : l'information de l'erreur circule
+\textbf{à l'envers}, de la sortie vers l'entrée.
+
+\begin{retenir}
+Dérivée utile : pour ReLU, $\mathrm{ReLU}'(z) = 1$ si $z > 0$, et $0$ sinon. Très
+simple à coder, d'où sa popularité.
+\end{retenir}
+
+% =====================================================================
+\section{L'entraînement en pratique}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Données d'entraînement} : l'ensemble des exemples (entrée $+$ cible).
+  \item \textbf{Itération} : un passage avant $+$ arrière $+$ mise à jour.
+  \item \textbf{Batch} (lot) : le paquet d'exemples traités avant chaque mise à jour.
+  \item \textbf{Epoch} (époque) : un passage complet sur toutes les données.
+  \item \textbf{Learning rate} $\eta$ : la taille du pas, le réglage le plus important.
+  \item \textbf{Surapprentissage} (\emph{overfitting}) : le réseau apprend « par
+  cœur » au lieu de \textbf{généraliser}. On le détecte avec des données de
+  \textbf{test} jamais vues.
+\end{itemize}
+
+\begin{lstlisting}
+repeter pour chaque epoch :
+    pour chaque exemple (x, y) :
+        y_chapeau = reseau.forward(x)    // propagation avant
+        C = cout(y_chapeau, y)           // erreur
+        gradients = backprop(C)          // propagation arriere
+        mettre a jour les poids          // w <- w - eta * gradient
+\end{lstlisting}
+
+% =====================================================================
+\section{Application aux échecs}
+
+But final : un réseau qui \textbf{évalue une position} (ou choisit un coup). À
+régler dans l'ordre :
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Encodage de l'entrée} : transformer l'échiquier (le
+  \texttt{String[][] squares} de \texttt{Board.java}) en un \textbf{vecteur de
+  nombres}. Ex. : case vide $=0$, pion blanc $=+1$, dame noire $=-9$, etc.
+  \item \textbf{Définir la sortie} : un seul nombre (évaluation) ? une probabilité
+  par coup ?
+  \item \textbf{Obtenir des données} : des positions avec leur « bonne » évaluation.
+  \item \textbf{Entraîner} avec les chapitres 6 à 10.
+  \item \textbf{Brancher} le réseau entraîné sur le jeu.
+\end{enumerate}
+
+% =====================================================================
+\section*{Où on se situe dans le cours}
+\addcontentsline{toc}{section}{Où on se situe dans le cours}
+
+\begin{lstlisting}
+[0]-[1]-[2]-[3]-[4]-[5]-| TU ES ICI |-[6]-[7]-[8]-[9]-[10]-[11]
+ OK  OK  OK  OK  OK  OK                a faire ......................
+|------- PROPAGATION AVANT -------|   |--------- APPRENTISSAGE ---------|
+   (deja code : Layer.java + Network.java)    (pas encore commence)
+\end{lstlisting}
+
+\textbf{Acquis (chap. 0 à 5)}, codé dans \texttt{Layer.java} / \texttt{Network.java} :
+\begin{itemize}[leftmargin=2em]
+  \item le neurone : \texttt{biais + somme(poids $\times$ entrées)} ;
+  \item la fonction d'activation ReLU ;
+  \item la couche, vue comme un produit matrice $\times$ vecteur ;
+  \item le réseau et la propagation avant.
+\end{itemize}
+
+\textbf{Concrètement, on s'est arrêté à la fin du chapitre 5.} Ton réseau sait
+\textbf{calculer} une sortie, mais les poids sont \textbf{fixés à la main} : il ne
+sait pas encore \textbf{apprendre}.
+
+\textbf{Prochaine étape (chapitre 6)} : introduire la \textbf{fonction de coût}
+pour \textbf{mesurer l'erreur}. C'est le premier pas vers l'apprentissage ;
+viendront ensuite les dérivées/gradient (7), la descente de gradient (8) et la
+rétropropagation (9), qui permettront enfin au réseau d'ajuster ses poids tout
+seul.
+
+\end{document}

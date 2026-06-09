@@ -18,10 +18,16 @@ public class ChessGUI {
   private final Board board;
   private final boolean flipped;
   private final JFrame frame;
+  private final Bot bot;
 
   public ChessGUI(Board board, String color) {
     this.board = board;
     this.flipped = color.equals("black");
+    String botColor = color.equals("white") ? "black" : "white";
+    Network net = new java.io.File("weights/weights.txt").exists()
+        ? Network.load("weights/weights.txt")
+        : Network.random(new int[] { 768, 100, 1 });
+    this.bot = new Bot(net, botColor);
 
     frame = new JFrame("Chess X AI " + turn + " turn");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,6 +60,10 @@ public class ChessGUI {
     frame.pack();
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
+
+    if (turn.equals(bot.color)) {
+      botMove();
+    }
   }
 
   private void handleClick(int row, int col, String color) {
@@ -96,7 +106,23 @@ public class ChessGUI {
       turn = turn.equals("white") ? "black" : "white";
       frame.setTitle("Chess X AI " + turn + " turn");
       checkEnd();
+      botMove();
     }
+  }
+
+  private void botMove() {
+    if (gameOver) {
+      return;
+    }
+    int[] m = bot.bestMove(board);
+    if (m == null) {
+      return;
+    }
+    board.move(m[0], m[1], m[2], m[3]);
+    refresh();
+    turn = turn.equals("white") ? "black" : "white";
+    frame.setTitle("Chess X AI " + turn + " turn");
+    checkEnd();
   }
 
   private void checkEnd() {
