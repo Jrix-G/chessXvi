@@ -62,7 +62,10 @@
       "Bash(pkill -f Arena)",
       "Bash(/usr/bin/time -v java Eval 4 4)",
       "Bash(ps -eo pid,etime,time,%cpu,args)",
-      "Bash(pkill -f \"Eval 4 4\")"
+      "Bash(pkill -f \"Eval 4 4\")",
+      "Bash(ssh *)",
+      "Bash(scp -i ~/.ssh/bigfat.key -o StrictHostKeyChecking=no opc@141.253.103.111:/home/opc/chessXvi/web/public/weights.txt /home/jason/chessXvi/weights_web_public.txt)",
+      "Bash(scp -i ~/.ssh/bigfat.key -o StrictHostKeyChecking=no opc@141.253.103.111:/home/opc/chessXvi/weights/weights.txt /home/jason/chessXvi/weights_weights.txt)"
     ]
   }
 }
