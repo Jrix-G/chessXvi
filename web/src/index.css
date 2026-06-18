@@ -1,0 +1,163 @@
+:root {
+  --bg-1: #1a1c22;
+  --bg-2: #12131a;
+  --card: #21232c;
+  --card-border: #2e313d;
+  --text: #d7dae2;
+  --text-dim: #9aa0ad;
+  --text-h: #ffffff;
+  --accent: #7c9cff;
+  --accent-strong: #5b7bff;
+  --good: #5fcf80;
+  --bad: #ef6f6f;
+  --draw: #d9b25f;
+
+  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: radial-gradient(1200px 600px at 50% -10%, #2a2d3a 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+}
+
+#root {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 56px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 12px 0 28px;
+  color: var(--text-h);
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0 0 4px;
+}
+
+/* Carte : conteneur central de chaque ecran */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--accent-strong);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+button:hover {
+  background: var(--accent);
+}
+button:active {
+  transform: translateY(1px);
+}
+button:disabled {
+  background: #3a3d49;
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+/* Variante discrete (boutons secondaires) */
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text);
+}
+button.ghost:hover {
+  border-color: var(--accent);
+  color: var(--text-h);
+}
+
+input {
+  font: inherit;
+  color: var(--text-h);
+  background: #191b22;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+input:focus {
+  border-color: var(--accent);
+}
+
+/* Tableau du classement */
+.ranking {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+.ranking th,
+.ranking td {
+  padding: 10px 14px;
+  text-align: center;
+}
+.ranking th:first-child,
+.ranking td:first-child {
+  text-align: left;
+}
+.ranking thead th {
+  background: #191b22;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.ranking tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+.ranking tbody td:first-child {
+  font-weight: 600;
+  color: var(--text-h);
+}
+/* couleurs des compteurs : victoires / defaites / nulles */
+.ranking td.win {
+  color: var(--good);
+}
+.ranking td.loss {
+  color: var(--bad);
+}
+.ranking td.draw {
+  color: var(--draw);
+}
+
+.muted {
+  color: var(--text-dim);
+}
+.warn {
+  color: var(--bad);
+}

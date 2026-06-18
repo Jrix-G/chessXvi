@@ -54,7 +54,15 @@
       "Bash(ps -o etime= -p 9932)",
       "Bash(echo \"Arena tourne depuis: $\\(ps -o etime= -p 9932)",
       "Bash(javac -cp . /tmp/T10.java -d /tmp)",
-      "Bash(javac -cp . /tmp/T13.java -d /tmp)"
+      "Bash(javac -cp . /tmp/T13.java -d /tmp)",
+      "Bash(awk 'NR==103' /home/jason/chessXvi/weights/weights.txt)",
+      "Bash(cp weights/weights.txt /tmp/weights_backup.txt)",
+      "Bash(cp train.log /tmp/train_backup.log)",
+      "Bash(awk '{print \"PID\",$2,\"CPU%\",$3,\"TIME\",$10}')",
+      "Bash(pkill -f Arena)",
+      "Bash(/usr/bin/time -v java Eval 4 4)",
+      "Bash(ps -eo pid,etime,time,%cpu,args)",
+      "Bash(pkill -f \"Eval 4 4\")"
     ]
   }
 }

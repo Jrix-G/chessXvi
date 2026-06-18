@@ -3,8 +3,9 @@ public class Layer {
   double[] biases;
   double[] input;
   double[] z;
-  double[][] gradW;
-  double[] gradB;
+  double[] delta;
+  int[] nz;
+  int nzCount;
   boolean useRelu = true;
 
   public Layer(double[][] weights, double[] biases) {
@@ -15,12 +16,25 @@ public class Layer {
   public double[] forward(double[] input) {
     this.input = input;
     int neurons = weights.length;
+    int inputs = input.length;
+    if (nz == null || nz.length < inputs) {
+      nz = new int[inputs];
+    }
+    int c = 0;
+    for (int i = 0; i < inputs; i++) {
+      if (input[i] != 0) {
+        nz[c++] = i;
+      }
+    }
+    nzCount = c;
     double[] output = new double[neurons];
     this.z = new double[neurons];
     for (int n = 0; n < neurons; n++) {
       double zn = biases[n];
-      for (int i = 0; i < input.length; i++) {
-        zn += weights[n][i] * input[i];
+      double[] wn = weights[n];
+      for (int k = 0; k < c; k++) {
+        int i = nz[k];
+        zn += wn[i] * input[i];
       }
       this.z[n] = zn;
       output[n] = useRelu ? relu(zn) : zn;
@@ -41,20 +55,13 @@ public class Layer {
     return useRelu ? reluDerivative(z) : 1;
   }
 
-  public double[] backward(double[] delta) {
+  public void storeDelta(double[] delta) {
+    this.delta = delta;
+  }
+
+  public double[] propagate(double[] delta) {
     int neurons = weights.length;
     int inputs = input.length;
-
-    gradW = new double[neurons][inputs];
-    gradB = new double[neurons];
-
-    for (int n = 0; n < neurons; n++) {
-      gradB[n] = delta[n];
-      for (int i = 0; i < inputs; i++) {
-        gradW[n][i] = delta[n] * input[i];
-      }
-    }
-
     double[] deltaPrev = new double[inputs];
     for (int i = 0; i < inputs; i++) {
       double s = 0;
@@ -64,6 +71,28 @@ public class Layer {
       deltaPrev[i] = s;
     }
     return deltaPrev;
+  }
+
+  public double applyGradAndNorm(double eta) {
+    int neurons = weights.length;
+    double dn2 = 0;
+    for (int n = 0; n < neurons; n++) {
+      double dn = delta[n];
+      dn2 += dn * dn;
+      biases[n] -= eta * dn;
+      double e = eta * dn;
+      double[] wn = weights[n];
+      for (int k = 0; k < nzCount; k++) {
+        int i = nz[k];
+        wn[i] -= e * input[i];
+      }
+    }
+    double xi2 = 0;
+    for (int k = 0; k < nzCount; k++) {
+      double xi = input[nz[k]];
+      xi2 += xi * xi;
+    }
+    return dn2 * xi2 + dn2;
   }
 
   public static void main(String[] args) {

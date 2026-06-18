@@ -44,8 +44,9 @@ public class Network {
     }
 
     for (int k = last; k >= 0; k--) {
-      double[] deltaPrev = layers[k].backward(delta);
+      layers[k].storeDelta(delta);
       if (k > 0) {
+        double[] deltaPrev = layers[k].propagate(delta);
         for (int i = 0; i < deltaPrev.length; i++) {
           deltaPrev[i] *= layers[k - 1].activationDerivative(layers[k - 1].z[i]);
         }
@@ -55,15 +56,17 @@ public class Network {
   }
 
   public void update(double eta) {
-    for (int k = 0; k < layers.length; k++) {
-      Layer L = layers[k];
-      for (int n = 0; n < L.weights.length; n++) {
-        L.biases[n] -= eta * L.gradB[n];
-        for (int i = 0; i < L.weights[n].length; i++) {
-          L.weights[n][i] -= eta * L.gradW[n][i];
-        }
-      }
+    for (Layer L : layers) {
+      L.applyGradAndNorm(eta);
     }
+  }
+
+  public double updateAndNorm(double eta) {
+    double s = 0;
+    for (Layer L : layers) {
+      s += L.applyGradAndNorm(eta);
+    }
+    return Math.sqrt(s);
   }
 
   public static Network random(int[] sizes) {

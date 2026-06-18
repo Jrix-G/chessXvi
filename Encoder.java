@@ -3,15 +3,14 @@ public class Encoder {
     double[] vec = new double[768];
     for (int row = 0; row < 8; row++) {
       for (int col = 0; col < 8; col++) {
-        String piece = board.pieceAt(row, col);
-        if (piece.equals("")) {
+        int code = board.codeAt(row, col);
+        if (code == 0) {
           continue;
         }
-        String color = piece.split("_")[0];
-        String name = piece.split("_")[1];
-        int colorBase = color.equals("white") ? 0 : 6;
+        int colorBase = code <= 6 ? 0 : 6;
+        int type = (code - 1) % 6;
         int base = (row * 8 + col) * 12;
-        vec[base + colorBase + typeIndex(name)] = 1;
+        vec[base + colorBase + type] = 1;
       }
     }
     return vec;
